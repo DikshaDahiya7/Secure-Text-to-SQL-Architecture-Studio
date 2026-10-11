@@ -24,9 +24,10 @@ export default async function handler(req, res) {
         - AST Root Node: "${state?.rootNodeType || 'None'}"
         - Security Status: ${state?.isUnsafe ? 'Blocked (' + state?.threatCategory + ')' : 'Safe Read-Only'}
         
+        CRITICAL INSTRUCTION: Do not use any LaTeX formatting, math blocks ($$ or \mathrm), or complex symbols. Provide all explanations using clean, readable plain text and standard Markdown formatting only.
+        
         Answer the user's question clearly, professionally, and concisely with a focus on compiler design concepts.`;
 
-        // Updated to gemini-3.8-flash as recommended by the API error log
         const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
