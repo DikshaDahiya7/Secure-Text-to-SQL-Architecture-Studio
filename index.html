@@ -61,12 +61,12 @@
         .sim-table th { background: #030712; color: #93c5fd; }
         .sim-table td { background: #0b0f19; color: #e5e7eb; }
 
-        .compiler-box { background: #030712; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-top: 10px; font-family: monospace; font-size: 11px; color: #c084fc; line-height: 1.5; }
+        .compiler-box { background: #030712; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-top: 10px; font-family: monospace; font-size: 11px; color: #c084fc; line-height: 1.6; }
         .matrix-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 10px; }
-        .matrix-table th, .matrix-table td { border: 1px solid #374151; padding: 4px; text-align: center; }
+        .matrix-table th, .matrix-table td { border: 1px solid #374151; padding: 5px; text-align: center; }
         .matrix-table th { background: #1f2937; color: #f3f4f6; }
         .matrix-table td { background: #0b0f19; color: #9ca3af; }
-        .matrix-table td.highlight { background: rgba(139, 92, 246, 0.3); color: #c084fc; font-weight: bold; border-color: #8b5cf6; }
+        .matrix-table td.highlight { background: rgba(139, 92, 246, 0.4); color: #c084fc; font-weight: bold; border-color: #8b5cf6; }
 
         .checklist { margin-top: 8px; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
         .check-item { display: flex; align-items: center; gap: 6px; }
@@ -89,7 +89,7 @@
     <header>
         <div>
             <h1>Secure Text-to-SQL Architecture Studio</h1>
-            <div class="subtitle">LL(1) Recursive Descent Parser, FIRST/FOLLOW Inspector & AST Security Policy Validator</div>
+            <div class="subtitle">LL(1) Parser, Grammar Rules Inspector & Security Policy Guard</div>
         </div>
         <div class="header-actions">
             <button class="ai-tutor-btn" id="open-tutor">🤖 Ask Live Gemini AI Tutor</button>
@@ -114,12 +114,12 @@
             </div>
 
             <div class="card">
-                <h2>⚙️ Lexical & Token Stream Analysis</h2>
+                <h2>⚙️ Step 1: Lexical Analysis (Tokens)</h2>
                 <div class="results-box" id="trace-output">
-                    Click 'Execute Compiler Pipeline' to run lexical analysis...
+                    Click 'Execute Compiler Pipeline' to start scanning words...
                 </div>
                 <div style="margin-top: 10px;">
-                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;"><b>Token Stream (Lexer Output):</b></div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;"><b>Recognized Tokens (Words):</b></div>
                     <div id="token-stream-container" style="display: flex; flex-wrap: wrap; gap: 4px;">
                         <span style="color: var(--text-muted); font-size: 11px;">Tokens will appear here...</span>
                     </div>
@@ -127,43 +127,44 @@
             </div>
 
             <div class="card">
-                <h2>📐 LL(1) Grammar FIRST & FOLLOW Sets</h2>
+                <h2>📐 Step 2: How Parser Reads Rules (FIRST Set)</h2>
                 <div class="compiler-box" id="grammar-sets-box">
-                    <div><b>Concept:</b> Parser lookahead checks FIRST set of production rules to resolve ambiguity without backtracking.</div>
-                    <div style="margin-top: 6px;"><b>FIRST(Stmt) =</b> { SELECT, DROP, DELETE, UPDATE, UNION }</div>
-                    <div style="margin-top: 2px;"><b>FOLLOW(Stmt) =</b> { $, ; }</div>
+                    <div><b>What is this?</b> Compiler pehla shabd dekh kar decide karta hai ki kaunsa rule chalana hai.</div>
+                    <div style="margin-top: 6px; color: #38bdf8;">• <b>Rule Name (Stmt):</b> Matlab user ka poora statement.</div>
+                    <div>• <b>FIRST Set:</b> Statement ka pehla shabd kya ho sakta hai? (Jaise: SELECT, DROP, DELETE, UPDATE).</div>
                 </div>
             </div>
         </div>
 
         <div>
             <div class="card">
-                <h2>🌳 Abstract Syntax Tree (AST) Visualizer</h2>
+                <h2>🌳 Step 3: Abstract Syntax Tree (AST)</h2>
                 <div id="ast-tree-container">
-                    <div style="color: var(--text-muted); font-size: 13px;">AST will render dynamically based on your query...</div>
+                    <div style="color: var(--text-muted); font-size: 13px;">AST tree will render here based on query structure...</div>
                 </div>
             </div>
 
             <div class="card">
-                <h2>🛡️ Semantic & Security Policy Validator</h2>
+                <h2>🛡️ Step 4: Security & Semantic Guard</h2>
                 <div id="security-audit-box" style="font-size: 12px; color: var(--text-muted);">
                     Waiting for validation check...
                 </div>
             </div>
 
             <div class="card">
-                <h2>📊 LL(1) Predictive Parsing Table Matrix</h2>
-                <div class="compiler-box" style="padding: 8px;">
+                <h2>📊 Step 5: Parsing Table Decision Matrix</h2>
+                <div class="compiler-box" style="padding: 10px;">
+                    <div style="font-size: 11px; color: #93c5fd; margin-bottom: 6px;"><b>Yeh table kaise kaam karti hai?</b> Row (Stmt) aur Column (Pehla shabd) match karke compiler turant rule chun leta hai.</div>
                     <table class="matrix-table">
                         <thead>
-                            <tr><th>Non-Terminal</th><th>SELECT</th><th>DROP</th><th>DELETE</th><th>UPDATE</th><th>$</th></tr>
+                            <tr><th>Statement (Stmt)</th><th>SELECT</th><th>DROP</th><th>DELETE</th><th>UPDATE</th></tr>
                         </thead>
                         <tbody>
-                            <tr><td><b>Stmt</b></td><td id="m-select">Rule 1 (Select)</td><td id="m-drop">Rule 2 (Drop)</td><td id="m-delete">Rule 3 (Delete)</td><td id="m-update">Rule 4 (Update)</td><td>Error</td></tr>
+                            <tr><td><b>Main Rule (Stmt)</b></td><td id="m-select">Rule 1 (Select)</td><td id="m-drop">Rule 2 (Drop)</td><td id="m-delete">Rule 3 (Delete)</td><td id="m-update">Rule 4 (Update)</td></tr>
                         </tbody>
                     </table>
-                    <div id="matrix-explanation" style="margin-top: 8px; font-size: 10px; color: #38bdf8;">
-                        <b>Parsing Table Logic:</b> Click execute to see how M[NonTerminal, Terminal] lookup selects the production rule.
+                    <div id="matrix-explanation" style="margin-top: 8px; font-size: 11px; color: #38bdf8;">
+                        <b>Current Status:</b> Click execute to watch table selection in action.
                     </div>
                 </div>
             </div>
@@ -176,10 +177,10 @@
             <span class="close-btn" id="close-tutor">&times;</span>
             <h2 style="margin-bottom: 15px;">🤖 Live Gemini AI Compiler Tutor</h2>
             <div class="chat-box" id="chat-messages">
-                <div class="chat-msg ai">Hello! I am your live Gemini AI tutor. Ask me anything about parsing, FIRST/FOLLOW sets, or AST validation!</div>
+                <div class="chat-msg ai">Hello! I am your live Gemini AI tutor. Ask me anything about parsing or AST validation!</div>
             </div>
             <div style="display: flex; gap: 8px;">
-                <input type="text" id="chat-input" placeholder="Ask a compiler concept question..." style="margin-bottom:0;">
+                <input type="text" id="chat-input" placeholder="Ask a simple compiler question..." style="margin-bottom:0;">
                 <button class="primary-btn" id="send-chat" style="width: auto;">Send</button>
             </div>
         </div>
@@ -253,7 +254,7 @@
             let projection = "*";
             let tokens = [];
             let activeMatrixCell = "m-select";
-            let ruleDesc = "Rule 1 (SELECT Statement)";
+            let ruleDesc = "Rule 1 (Safe SELECT Statement)";
 
             if (lower.includes("product")) { table = "products_catalog"; }
             else if (lower.includes("employee")) { table = "employees_db"; }
@@ -281,34 +282,34 @@
                 isUnsafe = true;
                 rootNodeType = "DropTableStatement [DDL]";
                 threatCategory = "Destructive Schema Modification (DROP)";
-                explanation = `The LL(1) Parser checked lookahead token [DROP]. Since DROP ∈ FIRST(DropStatement), the predictive parsing table selected Rule 2. Semantic policy validator flagged schema modification.`;
+                explanation = `Pehla shabd [DROP] mila. Parsing table ne dekha ki yeh DROP rule (Rule 2) hai. Lekin security guard ne table delete karne se rok diya.`;
                 tokens = ["[KEYWORD: DROP]", "[KEYWORD: TABLE]", `[IDENTIFIER: ${table}]`, "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-drop";
-                ruleDesc = "Rule 2 (DROP Table Statement)";
+                ruleDesc = "Rule 2 (DROP Table Command)";
             } else if (lower.includes("delete")) {
                 sql = `DELETE FROM ${table} WHERE 1=1;`;
                 isUnsafe = true;
                 rootNodeType = "DeleteStatement [DML Mutative]";
                 threatCategory = "Destructive Data Deletion (DELETE)";
-                explanation = `Lookahead token [DELETE] matched FIRST(DeleteStatement). Parsing table triggered Rule 3. Semantic policy blocked mutative DML operation.`;
+                explanation = `Pehla shabd [DELETE] mila. Parsing table ne Rule 3 select kiya. Lekin policy engine ne data delete hone se block kar diya.`;
                 tokens = ["[KEYWORD: DELETE]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: WHERE]", "[LITERAL: 1=1]", "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-delete";
-                ruleDesc = "Rule 3 (DELETE Mutative Statement)";
+                ruleDesc = "Rule 3 (DELETE Statement)";
             } else if (lower.includes("update") || lower.includes("role")) {
                 sql = `UPDATE ${table} SET role = 'admin';`;
                 isUnsafe = true;
                 rootNodeType = "UpdateStatement [Privilege Escalation]";
                 threatCategory = "Unauthorized Privilege Escalation (UPDATE)";
-                explanation = `Lookahead token [UPDATE] matched FIRST(UpdateStatement). Parsing table triggered Rule 4. Security validator caught privilege escalation.`;
+                explanation = `Pehla shabd [UPDATE] mila. Parsing table ne Rule 4 select kiya. Security validator ne unauthorized role update pakad kar block kar diya.`;
                 tokens = ["[KEYWORD: UPDATE]", `[IDENTIFIER: ${table}]`, "[KEYWORD: SET]", "[ASSIGNMENT: role='admin']", "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-update";
-                ruleDesc = "Rule 4 (UPDATE Privilege Mutation)";
+                ruleDesc = "Rule 4 (UPDATE Statement)";
             } else if (lower.includes("union")) {
                 sql = `SELECT * FROM ${table} UNION SELECT credit_card FROM admin_vault;`;
                 isUnsafe = true;
                 rootNodeType = "SelectStatement [Union Exfiltration]";
                 threatCategory = "Union-Based Data Exfiltration";
-                explanation = `Lookahead token [SELECT] triggered Rule 1, but secondary sub-tree analysis detected UNION operator violating strict query boundaries.`;
+                explanation = `Pehla shabd [SELECT] mila (Rule 1). Par aage UNION dekh kar security guard ne sensitive data chori hone se bacha liya.`;
                 tokens = ["[KEYWORD: SELECT]", "[OPERATOR: *]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: UNION]", "[KEYWORD: SELECT]", "[IDENTIFIER: credit_card]"];
                 activeMatrixCell = "m-select";
                 ruleDesc = "Rule 1 (SELECT with UNION anomaly)";
@@ -317,15 +318,15 @@
                 isUnsafe = true;
                 rootNodeType = "SelectStatement [Logical Tautology]";
                 threatCategory = "SQL Injection / Tautology Attack";
-                explanation = `Lookahead token [SELECT] triggered Rule 1. Semantic AST evaluation identified non-deterministic tautology (OR 1=1) in the WHERE predicate.`;
+                explanation = `Pehla shabd [SELECT] mila (Rule 1). Par checking ke dauran WHERE clause mein fake condition (1=1) pakdi gayi aur block kar di gayi.`;
                 tokens = ["[KEYWORD: SELECT]", "[OPERATOR: *]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: WHERE]", "[CONDITION: id=1 OR 1=1]"];
                 activeMatrixCell = "m-select";
-                ruleDesc = "Rule 1 (SELECT with Tautology)";
+                ruleDesc = "Rule 1 (SELECT with Injection)";
             } else {
                 sql = `SELECT ${projection} FROM ${table} WHERE ${condition};`;
                 isUnsafe = false;
                 rootNodeType = "SelectStatement [Read-Only DML]";
-                explanation = `Lookahead token [SELECT] matched FIRST(Stmt). Predictive parsing table lookup M[Stmt, SELECT] successfully returned Rule 1. Read-only DML verified.`;
+                explanation = `Pehla shabd [SELECT] mila. Table ne turant Rule 1 select kiya. Yeh ek safe read-only query hai, isliye turant pass ho gayi!`;
                 tokens = ["[KEYWORD: SELECT]", "[OPERATOR: *]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: WHERE]", `[CONDITION: ${condition}]`, "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-select";
                 ruleDesc = "Rule 1 (Safe SELECT Statement)";
@@ -349,29 +350,28 @@
                 table: table
             };
 
-            traceBox.innerHTML = `[1] Lexer: Scanned ${tokens.length} lexical tokens.\n[2] LL(1) Lookahead: Peeked first token [${tokens[0].replace(/\[|\]/g, '')}].\n[3] Semantic Symbol Lookup: Resolved table '${table}'.\n[4] AST Construction: Built root <${rootNodeType}>.`;
+            traceBox.innerHTML = `[1] Scanner: Query ke tukde karke tokens bana diye.\n[2] Lookahead: Pehla shabd check kiya [${tokens[0].replace(/\[|\]/g, '')}].\n[3] Symbol Check: Table '${table}' verify ki.\n[4] AST Tree: Tree structure taiyar kiya.`;
             
             grammarBox.innerHTML = `
-                <div><b>Step-by-Step LL(1) Logic:</b></div>
-                <div style="margin-top: 4px; color: #38bdf8;">• <b>Lookahead Token:</b> ${tokens[0]}</div>
-                <div>• <b>FIRST Set Check:</b> Token belongs to FIRST(${rootNodeType.split(' ')[0]})</div>
-                <div>• <b>Production Rule Picked:</b> <code>Stmt &rarr; ${rootNodeType.split(' ')[0]} TableExpr Predicate</code></div>
+                <div><b>Aasan Bhasha mein Logic:</b></div>
+                <div style="margin-top: 4px; color: #38bdf8;">• <b>Pehla Shabd (Lookahead):</b> ${tokens[0]}</div>
+                <div>• <b>Rule Chuna Gaya:</b> Statement (Stmt) type hai <code>${rootNodeType.split(' ')[0]}</code></div>
             `;
 
             matrixExp.innerHTML = `
-                <b>Active Parsing Table Lookup:</b> M[Stmt, <b>${tokens[0].split(': ')[1]?.replace(']', '') || 'SELECT'}</b>] &rarr; <span style="color: #c084fc;"><b>${ruleDesc}</b></span>. Zero backtracking required!
+                <b>Table Lookup Result:</b> Row [Stmt] + Column [<b>${tokens[0].split(': ')[1]?.replace(']', '') || 'SELECT'}</b>] &rarr; <span style="color: #c084fc;"><b>${ruleDesc}</b></span>
             `;
 
             if (isUnsafe) {
                 auditBox.innerHTML = `
                     <div class="badge danger" style="margin-bottom: 8px;">SECURITY ALERT: QUERY BLOCKED</div>
                     <p style="color: #f87171; margin-bottom: 4px;"><b>Threat Type:</b> ${threatCategory}</p>
-                    <p style="color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;"><b>Semantic & Policy Audit:</b> ${explanation}</p>
+                    <p style="color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;"><b>Kyu Roka Gaya:</b> ${explanation}</p>
                     <div class="checklist">
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Lexical Token Stream Generated</div>
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> LL(1) Predictive Parsing & Table Lookup</div>
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Semantic Symbol Table Verification</div>
-                        <div class="check-item"><span style="color: #f87171;">[✗]</span> Read-Only DML Security Policy Check</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Tokens Scan Hue</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Parsing Table Ne Rule Match Kiya</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Table Name Verify Hua</div>
+                        <div class="check-item"><span style="color: #f87171;">[✗]</span> Read-Only Security Policy Fail Ho Gayi (Blocked)</div>
                     </div>
                 `;
 
@@ -380,26 +380,26 @@
                     <div class="ast-connector"></div>
                     <div class="ast-node danger">Target: ${table}</div>
                     <div class="ast-connector"></div>
-                    <div class="ast-node danger" style="font-size: 10px;">🛑 Semantic Policy Violation Flagged & Rejected</div>
+                    <div class="ast-node danger" style="font-size: 10px;">🛑 Security Violation - Blocked!</div>
                 `;
             } else {
                 auditBox.innerHTML = `
                     <div class="badge safe" style="margin-bottom: 8px;">AUDIT PASSED: SAFE EXECUTION</div>
-                    <p style="color: #34d399; margin-bottom: 4px;"><b>Status:</b> Read-Only DML & Semantic Rules Verified</p>
-                    <p style="color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;"><b>Policy Audit:</b> ${explanation}</p>
+                    <p style="color: #34d399; margin-bottom: 4px;"><b>Status:</b> Query bilkul safe hai!</p>
+                    <p style="color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;"><b>Explanation:</b> ${explanation}</p>
                     <div class="checklist">
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Lexical Token Stream Generated</div>
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> LL(1) Predictive Parsing & Table Lookup</div>
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Semantic Symbol Table Verification</div>
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Read-Only DML Security Policy Check</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Tokens Scan Hue</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Parsing Table Ne Rule Match Kiya</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Table Name Verify Hua</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Read-Only Security Policy Pass Ho Gayi</div>
                     </div>
                     <div style="margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 6px;">
-                        <div style="font-size: 11px; color: var(--primary); margin-bottom: 4px;"><b>Simulated Database Output (${table}):</b></div>
+                        <div style="font-size: 11px; color: var(--primary); margin-bottom: 4px;"><b>Database Output (${table}):</b></div>
                         <table class="sim-table">
-                            <thead><tr><th>ID</th><th>Record Name</th><th>Status / Details</th></tr></thead>
+                            <thead><tr><th>ID</th><th>Record Name</th><th>Status</th></tr></thead>
                             <tbody>
-                                <tr><td>101</td><td>Alpha Record Alpha</td><td>Active / Verified</td></tr>
-                                <tr><td>102</td><td>Beta Instance Node</td><td>Active / Verified</td></tr>
+                                <tr><td>101</td><td>Alpha Record Alpha</td><td>Active</td></tr>
+                                <tr><td>102</td><td>Beta Instance Node</td><td>Active</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -415,7 +415,7 @@
                     </div>
                     <div class="ast-connector" style="margin-top: 4px;"></div>
                     <div class="ast-node" style="background: #0f172a; border-color: #38bdf8; font-size: 10px; color: #38bdf8;">
-                        ✓ AST Node Hierarchy & Semantic Checks Cleared
+                        ✓ AST Tree & Security Check Passed Successfully
                     </div>
                 `;
             }
