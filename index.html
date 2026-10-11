@@ -66,13 +66,12 @@
         .cfg-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11px; font-family: monospace; }
         .cfg-table th, .cfg-table td { border: 1px solid #374151; padding: 6px; text-align: left; }
         .cfg-table th { background: #1f2937; color: #f3f4f6; text-align: center; }
-        .cfg-table td { background: #0b0f19; color: #e5e7eb; }
+        .cfg-table td { background: #0b0f19; color: #e5e7eb; transition: background 0.3s ease; }
 
         .matrix-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 10px; }
-        .matrix-table th, .matrix-table td { border: 1px solid #374151; padding: 5px; text-align: center; }
+        .matrix-table th, .matrix-table td { border: 1px solid #374151; padding: 5px; text-align: center; transition: background 0.3s ease; }
         .matrix-table th { background: #1f2937; color: #f3f4f6; }
         .matrix-table td { background: #0b0f19; color: #9ca3af; }
-        .matrix-table td.highlight { background: rgba(139, 92, 246, 0.4); color: #c084fc; font-weight: bold; border-color: #8b5cf6; }
 
         .checklist { margin-top: 8px; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
         .check-item { display: flex; align-items: center; gap: 6px; }
@@ -95,7 +94,7 @@
     <header>
         <div>
             <h1>Secure Text-to-SQL Architecture Studio</h1>
-            <div class="subtitle">LL(1) Top-Down Parser, FIRST() & FOLLOW() Derivation Matrix & Security Guard</div>
+            <div class="subtitle">LL(1) Top-Down Parser, Dynamic FIRST() & FOLLOW() Matrix & Security Guard</div>
         </div>
         <div class="header-actions">
             <button class="ai-tutor-btn" id="open-tutor">🤖 Ask Live Gemini AI Tutor</button>
@@ -140,13 +139,13 @@
                             <tr><th>Grammar Production (CFG)</th><th>FIRST()</th><th>FOLLOW()</th></tr>
                         </thead>
                         <tbody>
-                            <tr id="row-stmt"><td><b>Stmt</b> &rarr; Select | Drop | Delete | Update</td><td id="f-stmt">{SELECT, DROP, DELETE, UPDATE}</td><td>{$, ;}</td></tr>
-                            <tr id="row-table"><td><b>TableExpr</b> &rarr; TableName</td><td>{employees_db, users_accounts, ...}</td><td>{WHERE, UNION, $}</td></tr>
-                            <tr id="row-pred"><td><b>Predicate</b> &rarr; Condition | &epsilon;</td><td>{status, price, id, &epsilon;}</td><td>{$, ;}</td></tr>
+                            <tr id="row-stmt"><td><b>Stmt</b> &rarr; Select | Drop | Delete | Update</td><td id="cell-first-stmt">{SELECT, DROP, DELETE, UPDATE}</td><td>{$, ;}</td></tr>
+                            <tr id="row-table"><td><b>TableExpr</b> &rarr; TableName</td><td id="cell-first-table">{employees_db, users_accounts, ...}</td><td>{WHERE, UNION, $}</td></tr>
+                            <tr id="row-pred"><td><b>Predicate</b> &rarr; Condition | &epsilon;</td><td id="cell-first-pred">{status, price, id, &epsilon;}</td><td>{$, ;}</td></tr>
                         </tbody>
                     </table>
                     <div id="grammar-explanation" style="margin-top: 8px; font-size: 11px; color: #38bdf8;">
-                        <b>LL(1) Principle:</b> The parser inspects the lookahead token to match the FIRST() set, ensuring deterministic left-to-right scanning with zero backtracking.
+                        <b>LL(1) Principle:</b> The parser inspects the active lookahead token to resolve grammar productions deterministically.
                     </div>
                 </div>
             </div>
@@ -170,17 +169,23 @@
             <div class="card">
                 <h2>📊 Step 5: LL(1) Predictive Parsing Table Matrix</h2>
                 <div class="compiler-box" style="padding: 10px;">
-                    <div style="font-size: 11px; color: #93c5fd; margin-bottom: 6px;"><b>Parsing Matrix $M[A, a]$:</b> Maps non-terminals to terminals for conflict-free production selection.</div>
+                    <div style="font-size: 11px; color: #93c5fd; margin-bottom: 6px;"><b>Parsing Matrix $M[A, a]$:</b> Dynamically highlights the production rule matched by the current query.</div>
                     <table class="matrix-table">
                         <thead>
                             <tr><th>Non-Terminal</th><th>SELECT</th><th>DROP</th><th>DELETE</th><th>UPDATE</th></tr>
                         </thead>
                         <tbody>
-                            <tr><td><b>Stmt</b></td><td id="m-select">Rule 1 (Select)</td><td id="m-drop">Rule 2 (Drop)</td><td id="m-delete">Rule 3 (Delete)</td><td id="m-update">Rule 4 (Update)</td></tr>
+                            <tr>
+                                <td><b>Stmt</b></td>
+                                <td id="m-select">Rule 1 (Select)</td>
+                                <td id="m-drop">Rule 2 (Drop)</td>
+                                <td id="m-delete">Rule 3 (Delete)</td>
+                                <td id="m-update">Rule 4 (Update)</td>
+                            </tr>
                         </tbody>
                     </table>
                     <div id="matrix-explanation" style="margin-top: 8px; font-size: 11px; color: #38bdf8;">
-                        <b>Current Lookup:</b> Click execute to evaluate table routing.
+                        <b>Current Lookup:</b> Click execute to evaluate dynamic table routing.
                     </div>
                 </div>
             </div>
@@ -271,6 +276,7 @@
             let tokens = [];
             let activeMatrixCell = "m-select";
             let ruleDesc = "Rule 1 (Safe SELECT Statement)";
+            let firstTokenName = "SELECT";
 
             if (lower.includes("product")) { table = "products_catalog"; }
             else if (lower.includes("employee")) { table = "employees_db"; }
@@ -282,18 +288,21 @@
             else if (lower.includes("department")) condition = "department = 'HR'";
             else if (lower.includes("join")) condition = "joined_date > '2023-01-01'";
 
-            // Reset Matrix highlights
+            // Reset all table highlights
             ['m-select', 'm-drop', 'm-delete', 'm-update'].forEach(id => {
                 const cell = document.getElementById(id);
                 if(cell) {
                     cell.style.background = "#0b0f19";
                     cell.style.color = "#9ca3af";
                     cell.style.fontWeight = "normal";
-                    cell.style.borderColor = "#374151";
+                    cell.style.border = "1px solid #374151";
                 }
             });
 
-            document.getElementById('row-stmt').style.background = "transparent";
+            ['row-stmt', 'row-table', 'row-pred'].forEach(id => {
+                const row = document.getElementById(id);
+                if(row) row.style.background = "transparent";
+            });
 
             if (lower.includes("drop")) {
                 sql = `DROP TABLE ${table};`;
@@ -304,6 +313,7 @@
                 tokens = ["[KEYWORD: DROP]", "[KEYWORD: TABLE]", `[IDENTIFIER: ${table}]`, "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-drop";
                 ruleDesc = "Rule 2 (DROP Command)";
+                firstTokenName = "DROP";
             } else if (lower.includes("delete")) {
                 sql = `DELETE FROM ${table} WHERE 1=1;`;
                 isUnsafe = true;
@@ -313,6 +323,7 @@
                 tokens = ["[KEYWORD: DELETE]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: WHERE]", "[LITERAL: 1=1]", "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-delete";
                 ruleDesc = "Rule 3 (DELETE Statement)";
+                firstTokenName = "DELETE";
             } else if (lower.includes("update") || lower.includes("role")) {
                 sql = `UPDATE ${table} SET role = 'admin';`;
                 isUnsafe = true;
@@ -322,6 +333,7 @@
                 tokens = ["[KEYWORD: UPDATE]", `[IDENTIFIER: ${table}]`, "[KEYWORD: SET]", "[ASSIGNMENT: role='admin']", "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-update";
                 ruleDesc = "Rule 4 (UPDATE Statement)";
+                firstTokenName = "UPDATE";
             } else if (lower.includes("union")) {
                 sql = `SELECT * FROM ${table} UNION SELECT credit_card FROM admin_vault;`;
                 isUnsafe = true;
@@ -331,6 +343,7 @@
                 tokens = ["[KEYWORD: SELECT]", "[OPERATOR: *]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: UNION]", "[KEYWORD: SELECT]", "[IDENTIFIER: credit_card]"];
                 activeMatrixCell = "m-select";
                 ruleDesc = "Rule 1 (SELECT with UNION anomaly)";
+                firstTokenName = "SELECT";
             } else if (lower.includes("or 1=1") || lower.includes("1=1") || lower.includes("or 'a'='a'")) {
                 sql = `SELECT * FROM ${table} WHERE id = 1 OR 1=1;`;
                 isUnsafe = true;
@@ -340,6 +353,7 @@
                 tokens = ["[KEYWORD: SELECT]", "[OPERATOR: *]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: WHERE]", "[CONDITION: id=1 OR 1=1]"];
                 activeMatrixCell = "m-select";
                 ruleDesc = "Rule 1 (SELECT with Injection)";
+                firstTokenName = "SELECT";
             } else {
                 sql = `SELECT ${projection} FROM ${table} WHERE ${condition};`;
                 isUnsafe = false;
@@ -348,17 +362,26 @@
                 tokens = ["[KEYWORD: SELECT]", "[OPERATOR: *]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: WHERE]", `[CONDITION: ${condition}]`, "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-select";
                 ruleDesc = "Rule 1 (Safe SELECT Statement)";
+                firstTokenName = "SELECT";
             }
 
-            // Highlight active cell and row
+            // Dynamically Update Step 2 Table with Active Query Details
+            document.getElementById('cell-first-stmt').innerHTML = `<b>{${firstTokenName}}</b>`;
+            document.getElementById('cell-first-table').innerHTML = `<b>{${table}}</b>`;
+            document.getElementById('cell-first-pred').innerHTML = `<b>{${condition}}</b>`;
+
+            // Highlight Active Rows and Cells
+            document.getElementById('row-stmt').style.background = "rgba(139, 92, 246, 0.2)";
+            document.getElementById('row-table').style.background = "rgba(59, 130, 246, 0.15)";
+            document.getElementById('row-pred').style.background = "rgba(16, 185, 129, 0.15)";
+
             const activeCell = document.getElementById(activeMatrixCell);
             if (activeCell) {
                 activeCell.style.background = "rgba(139, 92, 246, 0.4)";
                 activeCell.style.color = "#c084fc";
                 activeCell.style.fontWeight = "bold";
-                activeCell.style.borderColor = "#8b5cf6";
+                activeCell.style.border = "2px solid #8b5cf6";
             }
-            document.getElementById('row-stmt').style.background = "rgba(139, 92, 246, 0.15)";
 
             lastExecutedState = {
                 query: prompt,
@@ -373,11 +396,11 @@
             tokenContainer.innerHTML = tokens.map(t => `<span class="token-badge">${t}</span>`).join('');
             
             grammarExp.innerHTML = `
-                <b>LL(1) Derivation Verification:</b> Lookahead token <code>${tokens[0]}</code> belongs to <b>FIRST(Stmt)</b>. Follow set verification checked against <b>FOLLOW(Stmt) = {$, ;}</b>.
+                <b>Active Derivation Match:</b> Lookahead token <code>${tokens[0]}</code> matched <b>FIRST(Stmt)</b>. TableExpr resolved to <code>${table}</code> and Predicate to <code>${condition}</code>.
             `;
 
             matrixExp.innerHTML = `
-                <b>Predictive Matrix Lookup:</b> M[Stmt, <b>${tokens[0].split(': ')[1]?.replace(']', '') || 'SELECT'}</b>] &rarr; <span style="color: #c084fc;"><b>${ruleDesc}</b></span>
+                <b>Dynamic Matrix Lookup:</b> M[Stmt, <b>${firstTokenName}</b>] &rarr; <span style="color: #c084fc;"><b>${ruleDesc}</b></span>
             `;
 
             if (isUnsafe) {
