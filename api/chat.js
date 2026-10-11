@@ -38,13 +38,19 @@ export default async function handler(req, res) {
 
         const data = await apiResponse.json();
 
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
+        // Agar Gemini API se koi error return hua ho toh use capture karein
+        if (data.error) {
+            return res.status(500).json({ reply: `Gemini API Error: ${data.error.message || 'Invalid request'}` });
+        }
+
+        // Safe extraction of response text
+        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
             const reply = data.candidates[0].content.parts[0].text;
             return res.status(200).json({ reply });
         } else {
-            return res.status(500).json({ reply: "Received an invalid response from Gemini API." });
+            return res.status(500).json({ reply: "Received an unexpected response structure from Gemini API." });
         }
     } catch (error) {
-        return res.status(500).json({ reply: "Failed to connect to Gemini API." });
+        return res.status(500).json({ reply: "Failed to connect to Gemini API: " + error.message });
     }
 }
