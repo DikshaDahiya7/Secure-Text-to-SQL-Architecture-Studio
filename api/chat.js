@@ -26,7 +26,8 @@ export default async function handler(req, res) {
         
         Answer the user's question clearly, professionally, and concisely with a focus on compiler design concepts.`;
 
-        const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        // Model name updated here to gemini-2.5-flash
+        const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -38,12 +39,10 @@ export default async function handler(req, res) {
 
         const data = await apiResponse.json();
 
-        // Agar Gemini API se koi error return hua ho toh use capture karein
         if (data.error) {
             return res.status(500).json({ reply: `Gemini API Error: ${data.error.message || 'Invalid request'}` });
         }
 
-        // Safe extraction of response text
         if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
             const reply = data.candidates[0].content.parts[0].text;
             return res.status(200).json({ reply });
