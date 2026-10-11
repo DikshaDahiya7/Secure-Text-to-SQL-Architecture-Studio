@@ -66,11 +66,11 @@
         .cfg-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11px; font-family: monospace; }
         .cfg-table th, .cfg-table td { border: 1px solid #374151; padding: 6px; text-align: left; }
         .cfg-table th { background: #1f2937; color: #f3f4f6; text-align: center; }
-        .cfg-table td { background: #0b0f19; color: #e5e7eb; transition: background 0.3s ease; }
+        .cfg-table td { background: #0b0f19; color: #e5e7eb; }
 
         .matrix-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 10px; }
-        .matrix-table th, .matrix-table td { border: 1px solid #374151; padding: 5px; text-align: center; transition: background 0.3s ease; }
-        .matrix-table th { background: #1f2937; color: #f3f4f6; }
+        .matrix-table th, .matrix-table td { border: 1px solid #374151; padding: 6px; text-align: center; transition: background 0.3s ease; }
+        .matrix-table th { background: #1f2937; color: #f3f4f6; font-weight: bold; }
         .matrix-table td { background: #0b0f19; color: #9ca3af; }
 
         .checklist { margin-top: 8px; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
@@ -94,7 +94,7 @@
     <header>
         <div>
             <h1>Secure Text-to-SQL Architecture Studio</h1>
-            <div class="subtitle">LL(1) Top-Down Parser, Dynamic FIRST() & FOLLOW() Matrix & Security Guard</div>
+            <div class="subtitle">LL(1) Top-Down Parser, FIRST() & FOLLOW() Derivation Matrix & Security Guard</div>
         </div>
         <div class="header-actions">
             <button class="ai-tutor-btn" id="open-tutor">🤖 Ask Live Gemini AI Tutor</button>
@@ -136,7 +136,7 @@
                 <div class="compiler-box" style="padding: 6px;">
                     <table class="cfg-table">
                         <thead>
-                            <tr><th>Grammar Production (CFG)</th><th>FIRST()</th><th>FOLLOW()</th></tr>
+                            <tr><th>Grammar Production (CFG)</th><th>FIRST() Set</th><th>FOLLOW() Set</th></tr>
                         </thead>
                         <tbody>
                             <tr id="row-stmt"><td><b>Stmt</b> &rarr; Select | Drop | Delete | Update</td><td id="cell-first-stmt">{SELECT, DROP, DELETE, UPDATE}</td><td>{$, ;}</td></tr>
@@ -145,7 +145,7 @@
                         </tbody>
                     </table>
                     <div id="grammar-explanation" style="margin-top: 8px; font-size: 11px; color: #38bdf8;">
-                        <b>LL(1) Principle:</b> The parser inspects the active lookahead token to resolve grammar productions deterministically.
+                        <b>How it works:</b> FIRST() tells the parser what keyword a statement starts with, enabling instant decision-making.
                     </div>
                 </div>
             </div>
@@ -167,16 +167,16 @@
             </div>
 
             <div class="card">
-                <h2>📊 Step 5: LL(1) Predictive Parsing Table Matrix</h2>
+                <h2>📊 Step 5: Simple LL(1) Action Finder Table</h2>
                 <div class="compiler-box" style="padding: 10px;">
-                    <div style="font-size: 11px; color: #93c5fd; margin-bottom: 6px;"><b>Parsing Matrix $M[A, a]$:</b> Dynamically highlights the production rule matched by the current query.</div>
+                    <div style="font-size: 11px; color: #93c5fd; margin-bottom: 6px;"><b>Rule Selector:</b> Matches the first word of your query to pick the exact rule instantly.</div>
                     <table class="matrix-table">
                         <thead>
-                            <tr><th>Non-Terminal</th><th>SELECT</th><th>DROP</th><th>DELETE</th><th>UPDATE</th></tr>
+                            <tr><th>If First Word is &rarr;</th><th>SELECT</th><th>DROP</th><th>DELETE</th><th>UPDATE</th></tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><b>Stmt</b></td>
+                                <td><b>Chosen Rule:</b></td>
                                 <td id="m-select">Rule 1 (Select)</td>
                                 <td id="m-drop">Rule 2 (Drop)</td>
                                 <td id="m-delete">Rule 3 (Delete)</td>
@@ -185,7 +185,7 @@
                         </tbody>
                     </table>
                     <div id="matrix-explanation" style="margin-top: 8px; font-size: 11px; color: #38bdf8;">
-                        <b>Current Lookup:</b> Click execute to evaluate dynamic table routing.
+                        <b>Current Action:</b> Click execute to see the matching table cell highlight.
                     </div>
                 </div>
             </div>
@@ -299,11 +299,6 @@
                 }
             });
 
-            ['row-stmt', 'row-table', 'row-pred'].forEach(id => {
-                const row = document.getElementById(id);
-                if(row) row.style.background = "transparent";
-            });
-
             if (lower.includes("drop")) {
                 sql = `DROP TABLE ${table};`;
                 isUnsafe = true;
@@ -358,23 +353,19 @@
                 sql = `SELECT ${projection} FROM ${table} WHERE ${condition};`;
                 isUnsafe = false;
                 rootNodeType = "SelectStatement [Read-Only DML]";
-                explanation = `Lookahead token [SELECT] matched FIRST(Stmt). LL(1) predictive table lookup M[Stmt, SELECT] successfully resolved Rule 1. Read-only compliance verified.`;
+                explanation = `Lookahead token [SELECT] matched FIRST(Stmt). LL(1) predictive table lookup successfully resolved Rule 1. Read-only compliance verified.`;
                 tokens = ["[KEYWORD: SELECT]", "[OPERATOR: *]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: WHERE]", `[CONDITION: ${condition}]`, "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-select";
                 ruleDesc = "Rule 1 (Safe SELECT Statement)";
                 firstTokenName = "SELECT";
             }
 
-            // Dynamically Update Step 2 Table with Active Query Details
+            // Dynamically Update Step 2 Table
             document.getElementById('cell-first-stmt').innerHTML = `<b>{${firstTokenName}}</b>`;
             document.getElementById('cell-first-table').innerHTML = `<b>{${table}}</b>`;
             document.getElementById('cell-first-pred').innerHTML = `<b>{${condition}}</b>`;
 
-            // Highlight Active Rows and Cells
-            document.getElementById('row-stmt').style.background = "rgba(139, 92, 246, 0.2)";
-            document.getElementById('row-table').style.background = "rgba(59, 130, 246, 0.15)";
-            document.getElementById('row-pred').style.background = "rgba(16, 185, 129, 0.15)";
-
+            // Highlight Active Matrix Cell
             const activeCell = document.getElementById(activeMatrixCell);
             if (activeCell) {
                 activeCell.style.background = "rgba(139, 92, 246, 0.4)";
@@ -400,7 +391,7 @@
             `;
 
             matrixExp.innerHTML = `
-                <b>Dynamic Matrix Lookup:</b> M[Stmt, <b>${firstTokenName}</b>] &rarr; <span style="color: #c084fc;"><b>${ruleDesc}</b></span>
+                <b>Action Finder Match:</b> First word is <b>${firstTokenName}</b> &rarr; Selected <span style="color: #c084fc;"><b>${ruleDesc}</b></span> instantly with zero backtracking.
             `;
 
             if (isUnsafe) {
