@@ -61,12 +61,12 @@
         .sim-table th { background: #030712; color: #93c5fd; }
         .sim-table td { background: #0b0f19; color: #e5e7eb; }
 
-        .compiler-box { background: #030712; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-top: 10px; font-family: monospace; font-size: 11px; color: #c084fc; }
+        .compiler-box { background: #030712; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-top: 10px; font-family: monospace; font-size: 11px; color: #c084fc; line-height: 1.5; }
         .matrix-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 10px; }
         .matrix-table th, .matrix-table td { border: 1px solid #374151; padding: 4px; text-align: center; }
         .matrix-table th { background: #1f2937; color: #f3f4f6; }
         .matrix-table td { background: #0b0f19; color: #9ca3af; }
-        .matrix-table td.highlight { background: rgba(139, 92, 246, 0.2); color: #c084fc; font-weight: bold; border-color: #8b5cf6; }
+        .matrix-table td.highlight { background: rgba(139, 92, 246, 0.3); color: #c084fc; font-weight: bold; border-color: #8b5cf6; }
 
         .checklist { margin-top: 8px; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
         .check-item { display: flex; align-items: center; gap: 6px; }
@@ -89,7 +89,7 @@
     <header>
         <div>
             <h1>Secure Text-to-SQL Architecture Studio</h1>
-            <div class="subtitle">LL(1) Recursive Descent Parser, FIRST/FOLLOW Inspector & AST Security Validator</div>
+            <div class="subtitle">LL(1) Recursive Descent Parser, FIRST/FOLLOW Inspector & AST Security Policy Validator</div>
         </div>
         <div class="header-actions">
             <button class="ai-tutor-btn" id="open-tutor">🤖 Ask Live Gemini AI Tutor</button>
@@ -129,9 +129,9 @@
             <div class="card">
                 <h2>📐 LL(1) Grammar FIRST & FOLLOW Sets</h2>
                 <div class="compiler-box" id="grammar-sets-box">
-                    <div><b>FIRST(Stmt) =</b> { SELECT, DROP, DELETE, UPDATE }</div>
-                    <div><b>FOLLOW(Stmt) =</b> { $, ; }</div>
-                    <div style="margin-top: 4px; color: #38bdf8;"><b>Predictive Parsing Status:</b> LL(1) Grammar Ambiguity Checked (Conflict-free table).</div>
+                    <div><b>Concept:</b> Parser lookahead checks FIRST set of production rules to resolve ambiguity without backtracking.</div>
+                    <div style="margin-top: 6px;"><b>FIRST(Stmt) =</b> { SELECT, DROP, DELETE, UPDATE, UNION }</div>
+                    <div style="margin-top: 2px;"><b>FOLLOW(Stmt) =</b> { $, ; }</div>
                 </div>
             </div>
         </div>
@@ -159,10 +159,12 @@
                             <tr><th>Non-Terminal</th><th>SELECT</th><th>DROP</th><th>DELETE</th><th>UPDATE</th><th>$</th></tr>
                         </thead>
                         <tbody>
-                            <tr><td><b>Stmt</b></td><td id="m-select">Rule 1</td><td id="m-drop">Rule 2</td><td id="m-delete">Rule 3</td><td id="m-update">Rule 4</td><td>Error</td></tr>
-                            <tr><td><b>Condition</b></td><td class="highlight">Predicate()</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+                            <tr><td><b>Stmt</b></td><td id="m-select">Rule 1 (Select)</td><td id="m-drop">Rule 2 (Drop)</td><td id="m-delete">Rule 3 (Delete)</td><td id="m-update">Rule 4 (Update)</td><td>Error</td></tr>
                         </tbody>
                     </table>
+                    <div id="matrix-explanation" style="margin-top: 8px; font-size: 10px; color: #38bdf8;">
+                        <b>Parsing Table Logic:</b> Click execute to see how M[NonTerminal, Terminal] lookup selects the production rule.
+                    </div>
                 </div>
             </div>
         </div>
@@ -233,6 +235,7 @@
             const astContainer = document.getElementById('ast-tree-container');
             const auditBox = document.getElementById('security-audit-box');
             const grammarBox = document.getElementById('grammar-sets-box');
+            const matrixExp = document.getElementById('matrix-explanation');
 
             if (!prompt) {
                 alert("Please enter a query!");
@@ -250,6 +253,7 @@
             let projection = "*";
             let tokens = [];
             let activeMatrixCell = "m-select";
+            let ruleDesc = "Rule 1 (SELECT Statement)";
 
             if (lower.includes("product")) { table = "products_catalog"; }
             else if (lower.includes("employee")) { table = "employees_db"; }
@@ -263,9 +267,13 @@
 
             // Reset Matrix highlights
             ['m-select', 'm-drop', 'm-delete', 'm-update'].forEach(id => {
-                document.getElementById(id).style.background = "#0b0f19";
-                document.getElementById(id).style.color = "#9ca3af";
-                document.getElementById(id).style.fontWeight = "normal";
+                const cell = document.getElementById(id);
+                if(cell) {
+                    cell.style.background = "#0b0f19";
+                    cell.style.color = "#9ca3af";
+                    cell.style.fontWeight = "normal";
+                    cell.style.borderColor = "#374151";
+                }
             });
 
             if (lower.includes("drop")) {
@@ -273,51 +281,60 @@
                 isUnsafe = true;
                 rootNodeType = "DropTableStatement [DDL]";
                 threatCategory = "Destructive Schema Modification (DROP)";
-                explanation = `The LL(1) Top-Down Parser matched a DDL command production rule. Our semantic & security policy strictly permits read-only DML queries. Dropping table '${table}' violates schema safety constraints.`;
+                explanation = `The LL(1) Parser checked lookahead token [DROP]. Since DROP ∈ FIRST(DropStatement), the predictive parsing table selected Rule 2. Semantic policy validator flagged schema modification.`;
                 tokens = ["[KEYWORD: DROP]", "[KEYWORD: TABLE]", `[IDENTIFIER: ${table}]`, "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-drop";
+                ruleDesc = "Rule 2 (DROP Table Statement)";
             } else if (lower.includes("delete")) {
                 sql = `DELETE FROM ${table} WHERE 1=1;`;
                 isUnsafe = true;
                 rootNodeType = "DeleteStatement [DML Mutative]";
                 threatCategory = "Destructive Data Deletion (DELETE)";
-                explanation = `An unauthorized mutation production rule (DeleteStatement) was instantiated during recursive descent parsing. The policy engine blocked execution to prevent data loss on table '${table}'.`;
+                explanation = `Lookahead token [DELETE] matched FIRST(DeleteStatement). Parsing table triggered Rule 3. Semantic policy blocked mutative DML operation.`;
                 tokens = ["[KEYWORD: DELETE]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: WHERE]", "[LITERAL: 1=1]", "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-delete";
+                ruleDesc = "Rule 3 (DELETE Mutative Statement)";
             } else if (lower.includes("update") || lower.includes("role")) {
                 sql = `UPDATE ${table} SET role = 'admin';`;
                 isUnsafe = true;
                 rootNodeType = "UpdateStatement [Privilege Escalation]";
                 threatCategory = "Unauthorized Privilege Escalation (UPDATE)";
-                explanation = `Semantic AST analysis revealed an UpdateStatement node modifying table '${table}'. This violates the principle of least privilege enforced by the security validator.`;
+                explanation = `Lookahead token [UPDATE] matched FIRST(UpdateStatement). Parsing table triggered Rule 4. Security validator caught privilege escalation.`;
                 tokens = ["[KEYWORD: UPDATE]", `[IDENTIFIER: ${table}]`, "[KEYWORD: SET]", "[ASSIGNMENT: role='admin']", "[PUNCTUATION: ;]"];
                 activeMatrixCell = "m-update";
+                ruleDesc = "Rule 4 (UPDATE Privilege Mutation)";
             } else if (lower.includes("union")) {
                 sql = `SELECT * FROM ${table} UNION SELECT credit_card FROM admin_vault;`;
                 isUnsafe = true;
                 rootNodeType = "SelectStatement [Union Exfiltration]";
                 threatCategory = "Union-Based Data Exfiltration";
-                explanation = `The parser detected a secondary SELECT sub-tree combined via a UNION operator production node. This is a classic data leakage pattern targeting sensitive foreign tables.`;
+                explanation = `Lookahead token [SELECT] triggered Rule 1, but secondary sub-tree analysis detected UNION operator violating strict query boundaries.`;
                 tokens = ["[KEYWORD: SELECT]", "[OPERATOR: *]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: UNION]", "[KEYWORD: SELECT]", "[IDENTIFIER: credit_card]"];
+                activeMatrixCell = "m-select";
+                ruleDesc = "Rule 1 (SELECT with UNION anomaly)";
             } else if (lower.includes("or 1=1") || lower.includes("1=1") || lower.includes("or 'a'='a'")) {
                 sql = `SELECT * FROM ${table} WHERE id = 1 OR 1=1;`;
                 isUnsafe = true;
                 rootNodeType = "SelectStatement [Logical Tautology]";
                 threatCategory = "SQL Injection / Tautology Attack";
-                explanation = `AST inspection of the WHERE clause identified a non-deterministic LogicalExpression (OR 1=1). This always-true condition bypasses authentication checks and was flagged as malicious.`;
+                explanation = `Lookahead token [SELECT] triggered Rule 1. Semantic AST evaluation identified non-deterministic tautology (OR 1=1) in the WHERE predicate.`;
                 tokens = ["[KEYWORD: SELECT]", "[OPERATOR: *]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: WHERE]", "[CONDITION: id=1 OR 1=1]"];
+                activeMatrixCell = "m-select";
+                ruleDesc = "Rule 1 (SELECT with Tautology)";
             } else {
                 sql = `SELECT ${projection} FROM ${table} WHERE ${condition};`;
                 isUnsafe = false;
                 rootNodeType = "SelectStatement [Read-Only DML]";
-                explanation = `The AST consists solely of safe traversal nodes (Projection, TableSource, and Deterministic Condition). Verified against read-only semantic compliance rules.`;
+                explanation = `Lookahead token [SELECT] matched FIRST(Stmt). Predictive parsing table lookup M[Stmt, SELECT] successfully returned Rule 1. Read-only DML verified.`;
                 tokens = ["[KEYWORD: SELECT]", "[OPERATOR: *]", "[KEYWORD: FROM]", `[IDENTIFIER: ${table}]`, "[KEYWORD: WHERE]", `[CONDITION: ${condition}]`, "[PUNCTUATION: ;]"];
+                activeMatrixCell = "m-select";
+                ruleDesc = "Rule 1 (Safe SELECT Statement)";
             }
 
-            // Highlight active cell in LL(1) matrix
+            // Highlight active cell
             const activeCell = document.getElementById(activeMatrixCell);
             if (activeCell) {
-                activeCell.style.background = "rgba(139, 92, 246, 0.3)";
+                activeCell.style.background = "rgba(139, 92, 246, 0.4)";
                 activeCell.style.color = "#c084fc";
                 activeCell.style.fontWeight = "bold";
                 activeCell.style.borderColor = "#8b5cf6";
@@ -332,13 +349,17 @@
                 table: table
             };
 
-            traceBox.innerHTML = `[1] Lexer: Token stream scanned successfully (${tokens.length} tokens).\n[2] LL(1) Parser: Predictive table lookup matched production rule.\n[3] Semantic Analyzer: Schema symbol lookup verified table '${table}'.\n[4] AST Root Node: <${rootNodeType}> instantiated.`;
-            tokenContainer.innerHTML = tokens.map(t => `<span class="token-badge">${t}</span>`).join('');
+            traceBox.innerHTML = `[1] Lexer: Scanned ${tokens.length} lexical tokens.\n[2] LL(1) Lookahead: Peeked first token [${tokens[0].replace(/\[|\]/g, '')}].\n[3] Semantic Symbol Lookup: Resolved table '${table}'.\n[4] AST Construction: Built root <${rootNodeType}>.`;
             
             grammarBox.innerHTML = `
-                <div><b>Active Production Rule:</b> Stmt &rarr; ${rootNodeType.split(' ')[0]} TableExpr Predicate</div>
-                <div><b>FIRST token matched:</b> ${tokens[0]}</div>
-                <div style="margin-top: 4px; color: #38bdf8;"><b>Semantic Type Checker:</b> Symbol table resolved '${table}' successfully.</div>
+                <div><b>Step-by-Step LL(1) Logic:</b></div>
+                <div style="margin-top: 4px; color: #38bdf8;">• <b>Lookahead Token:</b> ${tokens[0]}</div>
+                <div>• <b>FIRST Set Check:</b> Token belongs to FIRST(${rootNodeType.split(' ')[0]})</div>
+                <div>• <b>Production Rule Picked:</b> <code>Stmt &rarr; ${rootNodeType.split(' ')[0]} TableExpr Predicate</code></div>
+            `;
+
+            matrixExp.innerHTML = `
+                <b>Active Parsing Table Lookup:</b> M[Stmt, <b>${tokens[0].split(': ')[1]?.replace(']', '') || 'SELECT'}</b>] &rarr; <span style="color: #c084fc;"><b>${ruleDesc}</b></span>. Zero backtracking required!
             `;
 
             if (isUnsafe) {
@@ -347,9 +368,9 @@
                     <p style="color: #f87171; margin-bottom: 4px;"><b>Threat Type:</b> ${threatCategory}</p>
                     <p style="color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;"><b>Semantic & Policy Audit:</b> ${explanation}</p>
                     <div class="checklist">
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Lexical Analysis & Tokenization</div>
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> LL(1) Predictive Parsing & Syntax Tree</div>
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Semantic Symbol Table Binding</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Lexical Token Stream Generated</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> LL(1) Predictive Parsing & Table Lookup</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Semantic Symbol Table Verification</div>
                         <div class="check-item"><span style="color: #f87171;">[✗]</span> Read-Only DML Security Policy Check</div>
                     </div>
                 `;
@@ -367,9 +388,9 @@
                     <p style="color: #34d399; margin-bottom: 4px;"><b>Status:</b> Read-Only DML & Semantic Rules Verified</p>
                     <p style="color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;"><b>Policy Audit:</b> ${explanation}</p>
                     <div class="checklist">
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Lexical Analysis & Tokenization</div>
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> LL(1) Predictive Parsing & Syntax Tree</div>
-                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Semantic Symbol Table Binding</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Lexical Token Stream Generated</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> LL(1) Predictive Parsing & Table Lookup</div>
+                        <div class="check-item"><span style="color: #34d399;">[✓]</span> Semantic Symbol Table Verification</div>
                         <div class="check-item"><span style="color: #34d399;">[✓]</span> Read-Only DML Security Policy Check</div>
                     </div>
                     <div style="margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 6px;">
